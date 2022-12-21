@@ -9,27 +9,11 @@
 // \t(gl.+);
 // \tGLCall($1);
 // 替换
-static uint32 ComplierShader(uint32 type,const std::string& source ) {
-	auto id = glCreateShader(type);
-	auto src = source.c_str();
-	GLCall(glShaderSource(id, 1, &src, nullptr));
-	GLCall(glCompileShader(id));
-	int result;
-	GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
-	if (result == GL_FALSE) {
-		int l;
-		GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &l));
-		char* message = (char*) alloca(l * sizeof(char));
-		GLCall(glGetShaderInfoLog(id, l,&l, message));
-		auto t = (type == GL_VERTEX_SHADER) ? "vetex" : "fragment";
-		std::cout << "failed to compile" << t << std::endl;
-		std::cout << message << std::endl;
 
-	}
-	return id;
-}
+static uint32 ComplierShader(uint32 type, const std::string& source);
+
 static uint32 CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
-	auto prog = glCreateProgram();
+	GLCall(auto prog = glCreateProgram());
 	auto vs = ComplierShader(GL_VERTEX_SHADER,vertexShader);
 	auto fs = ComplierShader(GL_FRAGMENT_SHADER, fragmentShader);
 
@@ -49,41 +33,7 @@ struct ShaderSource {
 	std::string vs;
 	std::string fs;
 };
-
-static void ParseShader(ShaderSource& s, const std::string& fpath) {
-	std::ifstream fs(fpath);
-
-	enum class shaderT {
-		None = -1, VERTEX = 0, FRAG = 1
-	};
-
-	std::string line;
-	std::stringstream ss[2];
-	auto type = shaderT::None;
-	while (getline(fs, line)) {
-		if (line.find("#shader") != std::string::npos) {
-			if (line.find("vertex")!=std::string::npos)  {
-				type = shaderT::VERTEX;
-			}
-			else if (line.find("fragment") != std::string::npos) {
-				type = shaderT::FRAG;
-			}
-			
-		}
-		else {
-			if (type == shaderT::None) {
-				std::cout << "err";
-				break;
-			}
-			ss[(int)type] << line << "\n";
-
-		}
-	}
-	s.fs = ss[1].str();
-	s.vs = ss[0].str();
-
-}
-
+static void ParseShader(ShaderSource& s, const std::string& fpath);
 
 int main(void)
 {
@@ -177,4 +127,58 @@ int main(void)
 	
 
 	return 0;
+}
+static void ParseShader(ShaderSource& s, const std::string& fpath) {
+	std::ifstream fs(fpath);
+
+	enum class shaderT {
+		None = -1, VERTEX = 0, FRAG = 1
+	};
+
+	std::string line;
+	std::stringstream ss[2];
+	auto type = shaderT::None;
+	while (getline(fs, line)) {
+		if (line.find("#shader") != std::string::npos) {
+			if (line.find("vertex") != std::string::npos) {
+				type = shaderT::VERTEX;
+			}
+			else if (line.find("fragment") != std::string::npos) {
+				type = shaderT::FRAG;
+			}
+
+		}
+		else {
+			if (type == shaderT::None) {
+				std::cout << "err";
+				break;
+			}
+			ss[(int)type] << line << "\n";
+
+		}
+	}
+	s.fs = ss[1].str();
+	s.vs = ss[0].str();
+
+}
+
+static uint32 CreateShader(const std::string& vertexShader, const std::string& fragmentShader);
+static uint32 ComplierShader(uint32 type, const std::string& source) {
+	GLCall(auto id = glCreateShader(type));
+	auto src = source.c_str();
+	GLCall(glShaderSource(id, 1, &src, nullptr));
+	GLCall(glCompileShader(id));
+	int result;
+	GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
+	if (result == GL_FALSE) {
+		int l;
+		GLCall(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &l));
+		char* message = (char*)alloca(l * sizeof(char));
+		GLCall(glGetShaderInfoLog(id, l, &l, message));
+		auto t = (type == GL_VERTEX_SHADER) ? "vetex" : "fragment";
+		std::cout << "failed to compile" << t << std::endl;
+		std::cout << message << std::endl;
+
+	}
+	return id;
 }
