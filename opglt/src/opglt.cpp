@@ -8,7 +8,7 @@ static unsigned int ComplierShader(unsigned int type,const std::string& source )
 	auto src = source.c_str(); // src的生命周期与source一致. eqt : &source[0]
 	glShaderSource(id, 1, &src, nullptr);
 	glCompileShader(id);
-	//todo:err
+	//todo:err handle.
 	int result;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
 	if (result == GL_FALSE) {
@@ -46,7 +46,8 @@ static unsigned int CreateShader(const std::string& vertexShader, const std::str
 
 
 
-
+// Advise:
+// Watch p10 and learn to handle errors if you feel hard debugging.
 
 
 int main(void)
@@ -72,21 +73,20 @@ int main(void)
 		return -1;
 	}
 	std::cout << glGetString(GL_VERSION);
-	float pos[12] = {
-		0.5f, 0.5f,-0.5f, 0.5f,
-		0.5f, -0.5f,0.5f, -0.5f,
-		-0.5f, 0.5f,-0.5f, -0.5f,
+	float pos[6] = {
+		0.5f, 0.5f,
+		0.5f, -0.5f,
+		-0.5f, 0.5f,
 	};
 
-	unsigned int buffer; // id stored here.
+	unsigned int buffer;
 	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer); // (GLsizei n, GLuint* buffers);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*12,pos,GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*6,pos,GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),(const void*) (2*sizeof(float)));
-	// attribute index; #components; type; need_normalize; 连续顶点属性之间的字节偏移量(sizeof a point);到的第一个components的偏移量
-	// make shader
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float),(const void*) 0);
 
+	//shader code begin:
 	std::string vetexShader =
 		"#version 330 core\n" 
 		"\n"
