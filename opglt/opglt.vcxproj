@@ -163,10 +163,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\indexbuffer.cpp" />
     <ClCompile Include="src\opglt.cpp" />
+    <ClCompile Include="src\renderer.cpp" />
+    <ClCompile Include="src\vertexbuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\shader\basic.shader" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\indexbuffer.h" />
+    <ClInclude Include="src\renderer.h" />
+    <ClInclude Include="src\vertexbuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
