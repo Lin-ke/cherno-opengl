@@ -26,17 +26,17 @@ int main(void)
 	}
 	std::cout << glGetString(GL_VERSION);
 	float pos[12] = {
-		0.5f, 0.5f,0.5f, 0.5f,
-		0.5f, -0.5f,0.5f, -0.5f,
-		-0.5f, 0.5f,-0.5f, 0.5f,
+		0.5f, 0.5f,
+		0.5f, -0.5f,
+		-0.5f, 0.5f,
 	};
 
 	unsigned int buffer; // id stored here.
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer); // (GLsizei n, GLuint* buffers);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*12,pos,GL_DYNAMIC_DRAW);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),(const void*)8);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*6,pos,GL_DYNAMIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),(const void*)0);
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
