@@ -12,6 +12,7 @@ static void GLClearError() {
 	while (glGetError() != GL_NO_ERROR) {
 	}
 }
+
 static void GLCheckError() {
 	while (GLenum error = glGetError()) {
 		std::cout << "error : " << error << std::endl;
@@ -29,10 +30,9 @@ static bool GLLogCall(const char* function , const char* filename, int line) {
 
 static unsigned int ComplierShader(unsigned int type,const std::string& source ) {
 	auto id = glCreateShader(type);
-	auto src = source.c_str(); // src的生命周期与source一致. eqt : &source[0]
+	auto src = source.c_str();
 	GLCall(glShaderSource(id, 1, &src, nullptr));
 	GLCall(glCompileShader(id));
-	//todo:err
 	int result;
 	GLCall(glGetShaderiv(id, GL_COMPILE_STATUS, &result));
 	if (result == GL_FALSE) {
@@ -47,61 +47,14 @@ static unsigned int ComplierShader(unsigned int type,const std::string& source )
 	}
 	return id;
 }
-static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader) {
-	auto prog = glCreateProgram();
-	auto vs = ComplierShader(GL_VERTEX_SHADER,vertexShader);
-	auto fs = ComplierShader(GL_FRAGMENT_SHADER, fragmentShader);
-
-	GLCall(glAttachShader(prog, vs));
-	GLCall(glAttachShader(prog, fs));
-	GLCall(glLinkProgram(prog));
-	GLCall(glValidateProgram(prog));
-
-
-	GLCall(glDeleteShader(vs));
-	GLCall(glDeleteShader(fs));
-
-	return prog;
-}
+static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader);
 
 struct ShaderSource {
 	std::string vs;
 	std::string fs;
 };
 
-static void ParseShader(ShaderSource& s, const std::string& fpath) {
-	std::ifstream fs(fpath);
-
-	enum class shaderT {
-		None = -1, VERTEX = 0, FRAG = 1
-	};
-
-	std::string line;
-	std::stringstream ss[2];
-	auto type = shaderT::None;
-	while (getline(fs, line)) {
-		if (line.find("#shader") != std::string::npos) {
-			if (line.find("vertex")!=std::string::npos)  {
-				type = shaderT::VERTEX;
-			}
-			else if (line.find("fragment") != std::string::npos) {
-				type = shaderT::FRAG;
-			}
-			
-		}
-		else {
-			if (type == shaderT::None) {
-				std::cout << "err";
-				break;
-			}
-			ss[(int)type] << line << "\n";
-
-		}
-	}
-	s.fs = ss[1].str();
-	s.vs = ss[0].str();
-
-}
+static void ParseShader(ShaderSource& s, const std::string& fpath);
 
 
 
@@ -121,12 +74,12 @@ int main(void)
 	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
 	if (!window)
 	{
-		GLCall(glfwTerminate());
+		glfwTerminate();
 		return -1;
 	}
 
 	/* Make the window's context current */
-	GLCall(glfwMakeContextCurrent(window));
+	glfwMakeContextCurrent(window);
 	if (glewInit() != GLEW_OK) {
 		std::cout << " error";
 		return -1;
@@ -141,22 +94,18 @@ int main(void)
 		0,1,3,
 		0,3,2
 	};
-	unsigned int buffer; // id stored here.
+	unsigned int buffer; 
 	GLCall(glGenBuffers(1, &buffer));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer); // (GLsizei n, GLuint* buffers));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); 
 	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(float)*6*2,pos,GL_STATIC_DRAW));
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float),(const void*)0));
-	// attribute index; #components; type; need_normalize; 连续顶点属性之间的字节偏移量(sizeof a point);到的第一个components的偏移量
-	unsigned int ibo; // index buffer
+	unsigned int ibo;
 	GLCall(glGenBuffers(1, &ibo));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); // (GLsizei n, GLuint* buffers));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*6, indices, GL_STATIC_DRAW));
 	
-	
-	
-	
-	// make shader
+
 	
 	ShaderSource ss;
 	ParseShader(ss,"res/shader/basic.shader");
@@ -167,10 +116,10 @@ int main(void)
 	{
 		/* Render here */
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
-		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
-		
-		GLCall(glEnd());
-
+		// errorcode:
+		//GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
+		// correct:
+		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 		/* Swap front and back buffers */
 		GLCall(glfwSwapBuffers(window));
 
@@ -178,6 +127,56 @@ int main(void)
 		GLCall(glfwPollEvents());
 	}
 	GLCall(glDeleteProgram(shader));
-	GLCall(glfwTerminate());
+	glfwTerminate();
 	return 0;
+}
+
+static void ParseShader(ShaderSource& s, const std::string& fpath) {
+	std::ifstream fs(fpath);
+
+	enum class shaderT {
+		None = -1, VERTEX = 0, FRAG = 1
+	};
+
+	std::string line;
+	std::stringstream ss[2];
+	auto type = shaderT::None;
+	while (getline(fs, line)) {
+		if (line.find("#shader") != std::string::npos) {
+			if (line.find("vertex") != std::string::npos) {
+				type = shaderT::VERTEX;
+			}
+			else if (line.find("fragment") != std::string::npos) {
+				type = shaderT::FRAG;
+			}
+
+		}
+		else {
+			if (type == shaderT::None) {
+				std::cout << "err";
+				break;
+			}
+			ss[(int)type] << line << "\n";
+
+		}
+	}
+	s.fs = ss[1].str();
+	s.vs = ss[0].str();
+
+}
+static unsigned int CreateShader(const std::string& vertexShader, const std::string& fragmentShader){
+	GLCall(auto prog = glCreateProgram());
+	auto vs = ComplierShader(GL_VERTEX_SHADER,vertexShader);
+	auto fs = ComplierShader(GL_FRAGMENT_SHADER, fragmentShader);
+
+	GLCall(glAttachShader(prog, vs));
+	GLCall(glAttachShader(prog, fs));
+	GLCall(glLinkProgram(prog));
+	GLCall(glValidateProgram(prog));
+
+
+	GLCall(glDeleteShader(vs));
+	GLCall(glDeleteShader(fs));
+
+	return prog;
 }
