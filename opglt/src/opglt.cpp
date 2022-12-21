@@ -109,23 +109,31 @@ int main(void)
 		std::cout << " error";
 		return -1;
 	}
-	std::cout << glGetString(GL_VERSION);
-	float pos[12] = {
+	float pos[] = {
 		-0.5f, -0.5f,
-		-0.5f, 0.5f,
-		0.5f, -0.5f,
 		0.5f, -0.5f,
 		-0.5f, 0.5f,
 		0.5f, 0.5f,
 	};
-	
+	unsigned int indices[] = {
+		0,1,3,
+		0,3,2
+	};
 	unsigned int buffer; // id stored here.
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer); // (GLsizei n, GLuint* buffers);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*12,pos,GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*6*2,pos,GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float),(const void*)0);
 	// attribute index; #components; type; need_normalize; 连续顶点属性之间的字节偏移量(sizeof a point);到的第一个components的偏移量
+	unsigned int ibo; // index buffer
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); // (GLsizei n, GLuint* buffers);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*6, indices, GL_STATIC_DRAW);
+	
+	
+	
+	
 	// make shader
 	
 	ShaderSource ss;
@@ -137,8 +145,9 @@ int main(void)
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
-		
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+
 		glEnd();
 
 		/* Swap front and back buffers */
