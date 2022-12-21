@@ -7,10 +7,9 @@
 
 static unsigned int ComplierShader(unsigned int type,const std::string& source ) {
 	auto id = glCreateShader(type);
-	auto src = source.c_str(); // src的生命周期与source一致. eqt : &source[0]
+	auto src = source.c_str(); 
 	glShaderSource(id, 1, &src, nullptr);
 	glCompileShader(id);
-	//todo:err
 	int result;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
 	if (result == GL_FALSE) {
@@ -119,22 +118,18 @@ int main(void)
 		0,1,3,
 		0,3,2
 	};
-	unsigned int buffer; // id stored here.
+	unsigned int buffer; 
 	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer); // (GLsizei n, GLuint* buffers);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer); 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*6*2,pos,GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float),(const void*)0);
-	// attribute index; #components; type; need_normalize; 连续顶点属性之间的字节偏移量(sizeof a point);到的第一个components的偏移量
-	unsigned int ibo; // index buffer
+
+	unsigned int ibo; // index buffer object
 	glGenBuffers(1, &ibo);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); // (GLsizei n, GLuint* buffers);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*6, indices, GL_STATIC_DRAW);
 	
-	
-	
-	
-	// make shader
 	
 	ShaderSource ss;
 	ParseShader(ss,"res/shader/basic.shader");
@@ -147,8 +142,6 @@ int main(void)
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-
-		glEnd();
 
 		/* Swap front and back buffers */
 		glfwSwapBuffers(window);
