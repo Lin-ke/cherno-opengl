@@ -7,10 +7,9 @@
 
 static unsigned int ComplierShader(unsigned int type,const std::string& source ) {
 	auto id = glCreateShader(type);
-	auto src = source.c_str(); // src的生命周期与source一致. eqt : &source[0]
+	auto src = source.c_str();
 	glShaderSource(id, 1, &src, nullptr);
 	glCompileShader(id);
-	//todo:err
 	int result;
 	glGetShaderiv(id, GL_COMPILE_STATUS, &result);
 	if (result == GL_FALSE) {
@@ -58,17 +57,17 @@ static void ParseShader(ShaderSource& s, const std::string& fpath) {
 	std::stringstream ss[2];
 	auto type = shaderT::None;
 	while (getline(fs, line)) {
-		if (line.find("#shader") != std::string::npos) {
-			if (line.find("vertex")!=std::string::npos)  {
+		if (line.find("#shader") != std::string::npos) { //tag
+			if (line.find("vertex")!=std::string::npos)  { // vertex shader codes:
 				type = shaderT::VERTEX;
 			}
-			else if (line.find("fragment") != std::string::npos) {
+			else if (line.find("fragment") != std::string::npos) {// fragment shader codes:
 				type = shaderT::FRAG;
 			}
 			
 		}
 		else {
-			if (type == shaderT::None) {
+			if (type == shaderT::None) { //Not find the shader code tag.
 				std::cout << "err";
 				break;
 			}
@@ -119,13 +118,12 @@ int main(void)
 		0.5f, 0.5f,
 	};
 	
-	unsigned int buffer; // id stored here.
+	unsigned int buffer; 
 	glGenBuffers(1, &buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, buffer); // (GLsizei n, GLuint* buffers);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer); 
 	glBufferData(GL_ARRAY_BUFFER, sizeof(float)*12,pos,GL_STATIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float),(const void*)0);
-	// attribute index; #components; type; need_normalize; 连续顶点属性之间的字节偏移量(sizeof a point);到的第一个components的偏移量
 	// make shader
 	
 	ShaderSource ss;
