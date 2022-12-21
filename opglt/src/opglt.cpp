@@ -12,11 +12,6 @@ static void GLClearError() {
 	while (glGetError() != GL_NO_ERROR) {
 	}
 }
-static void GLCheckError() {
-	while (GLenum error = glGetError()) {
-		std::cout << "error : " << error << std::endl;
-	}
-}
 static bool GLLogCall(const char* function , const char* filename, int line) {
 	while (GLenum error = glGetError()) {
 		std::cout << "error : " <<function <<" line:"<<line<<" error: "<<error <<" " << std::endl;
@@ -124,9 +119,12 @@ int main(void)
 		GLCall(glfwTerminate());
 		return -1;
 	}
-
+	
 	/* Make the window's context current */
-	GLCall(glfwMakeContextCurrent(window));
+	glfwMakeContextCurrent(window);
+	// frame rate
+	glfwSwapInterval(1);
+
 	if (glewInit() != GLEW_OK) {
 		std::cout << " error";
 		return -1;
@@ -142,15 +140,16 @@ int main(void)
 		0,3,2
 	};
 	unsigned int buffer; // id stored here.
+	
 	GLCall(glGenBuffers(1, &buffer));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer); // (GLsizei n, GLuint* buffers));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // (GLsizei n, GLuint* buffers));
 	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(float)*6*2,pos,GL_STATIC_DRAW));
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float),(const void*)0));
 	// attribute index; #components; type; need_normalize; 连续顶点属性之间的字节偏移量(sizeof a point);到的第一个components的偏移量
 	unsigned int ibo; // index buffer
 	GLCall(glGenBuffers(1, &ibo));
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo); // (GLsizei n, GLuint* buffers));
+	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo)); // (GLsizei n, GLuint* buffers));
 	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned int)*6, indices, GL_STATIC_DRAW));
 	
 	
@@ -160,19 +159,29 @@ int main(void)
 	
 	ShaderSource ss;
 	ParseShader(ss,"res/shader/basic.shader");
-		auto shader = CreateShader(ss.vs, ss.fs);
-		GLCall(glUseProgram(shader));
+	auto shader = CreateShader(ss.vs, ss.fs);
+	GLCall(glUseProgram(shader));
+	float r = 0.0f;
+	GLCall(int loc = glGetUniformLocation(shader, "u_Color"));
+	ASSERT(loc != -1);
+	GLCall(glUniform4f(loc, 0.2f, .3f, .8f, 1.0f));
+	auto icr = 0.02f;
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		GLCall(glClear(GL_COLOR_BUFFER_BIT));
-		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_INT, nullptr));
-		
-		GLCall(glEnd());
-
+		GLCall(glUniform4f(loc, r, .3f, .8f, 1.0f));
+		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+		if (r >= 1) {
+			icr =- 0.02f;
+		}
+		else if (r <= 0) {
+			icr = 0.02f;
+		}
+		r += icr;
 		/* Swap front and back buffers */
-		GLCall(glfwSwapBuffers(window));
+		glfwSwapBuffers(window);
 
 		/* Poll for and process events */
 		GLCall(glfwPollEvents());
