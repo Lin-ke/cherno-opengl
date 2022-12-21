@@ -98,9 +98,12 @@ static void ParseShader(ShaderSource& s, const std::string& fpath) {
 
 }
 
+// vertex array object:
+// bind vertex  buffer with layout and etc.
+// It's default created when use GLFW_OPENGL_COMPAT_PROFILE.
 
-
-
+// it's advised to use different vaos rather than use different vertex buffers and specifiers.
+// Years ago, it's faster to use one single vao.
 
 
 
@@ -111,6 +114,12 @@ int main(void)
 	/* Initialize the library */
 	if (!glfwInit())
 		return -1; 
+	
+
+	// Test: with this, you need to bind every time in the loop.
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
@@ -140,11 +149,19 @@ int main(void)
 		0,3,2
 	};
 	unsigned int buffer; // id stored here.
-	
+	unsigned int vao;
+	// VAO TEST
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+
+
 	GLCall(glGenBuffers(1, &buffer));
 	GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // (GLsizei n, GLuint* buffers));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(float)*6*2,pos,GL_STATIC_DRAW));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(float)*4*2,pos,GL_STATIC_DRAW));
+	// -> [specify vertex layout] but not actually bined with the buffer, which needs to call per time.
 	GLCall(glEnableVertexAttribArray(0));
+
+	// Actually : through this code link with vao(index 0 with buffer).
 	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2*sizeof(float),(const void*)0));
 	// attribute index; #components; type; need_normalize; 连续顶点属性之间的字节偏移量(sizeof a point);到的第一个components的偏移量
 	unsigned int ibo; // index buffer
@@ -166,12 +183,39 @@ int main(void)
 	ASSERT(loc != -1);
 	GLCall(glUniform4f(loc, 0.2f, .3f, .8f, 1.0f));
 	auto icr = 0.02f;
+	// after binding vao, though vetex buffer bind upwards are canceled, it will still works.
+	// Test:
+
+	glBindVertexArray(0);
+	glUseProgram(0);
+	glBindBuffer(GL_ARRAY_BUFFER,0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+
+
 	/* Loop until the user closes the window */
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
-		GLCall(glClear(GL_COLOR_BUFFER_BIT));
+		glClear(GL_COLOR_BUFFER_BIT);
+		//Test
+
+		glUseProgram(shader);
 		GLCall(glUniform4f(loc, r, .3f, .8f, 1.0f));
+
+		// only need to bind vertex array vao
+		glBindVertexArray(vao);
+		// otherwise, need bind vertex buffer and specify layout.
+
+		//GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer)); // (GLsizei n, GLuint* buffers));
+		//GLCall(glEnableVertexAttribArray(0));
+		//GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (const void*)0));
+
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+
+		
 		GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 		if (r >= 1) {
 			icr =- 0.02f;
